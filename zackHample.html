@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<head>
+    <link href='http://fonts.googleapis.com/css?family=Cabin:300,400' rel='stylesheet' type='text/css'>
+   <link href='http://fonts.googleapis.com/css?family=Lato:300,400' rel='stylesheet' type='text/css'>
+<link rel="shortcut icon" href="http://samhooker.com/images/initials/shinitfavicon.png" type="image/jpeg" />
+  <title>Zack Hample Countdown</title>
+</head>
+<style>
+  body {
+    background: Burlywood;
+
+  }
+  .centerme {
+    display: block;
+    margin: auto;
+  }
+  svg {
+  display: block;
+  margin: auto;
+  margin-top: 25px;
+  }
+  h1 {
+  	font-family: Cabin;
+  	text-align: center;
+  	margin-top: 10px;
+    margin-left: 60px;
+  	margin-right: 60px;
+    color: Crimson;
+  	}
+  h3 {
+  	font-family: Lato;
+  	margin-left: 80px;
+  	margin-right: 80px;
+  	text-align: center;
+  	margin-top: -8px;
+    color: Crimson;
+
+  	}
+      h3 a {
+
+      color: DarkRed;
+      font-weight: bolder;
+      }
+  h5 {
+  	font-family: Lato;
+  font-style: italic;
+  text-align:center;
+  line-height: 1.0em;
+  margin-top: -7px;
+  color: Crimson;
+  text-decoration: none;
+  }
+
+
+.button {
+  min-width: 130px;
+  padding: 4px 5px;
+  cursor: pointer;
+  margin: auto;
+  font-size: 13px;
+  border: 1px solid DarkGoldenrod;
+  color: Tomato;
+  text-decoration: none;
+  font-family: Lato;
+  display: inline-block;
+  float: center;
+  margin: 3px;
+  border-radius: 8px;
+  background-color: Ivory;
+}
+
+.button.active {
+  background: Tomato;
+  color: Ivory;
+}
+
+
+#vis {
+  clear: both;
+  margin-bottom: 10px;
+  display: block;
+  margin: auto;
+}
+
+#toolbar {
+  font-family: Lato;
+  color: LightSteelBlue;
+  display: block;
+  margin: auto;
+  position: relative;
+  width: 820px;
+  text-align: center;
+  padding-left: 20px;
+  margin-top: -10px;
+}
+
+.year {
+  font-size: 21px;
+  fill: #aaa;
+  cursor: default;
+}
+
+.title {
+  font-size: 18px;
+  fill: BlanchedAlmond;
+  cursor: default;
+}
+  .tooltip .title {
+  clear: both;
+	font-size: 16px;
+  color: Ivory;
+  opacity: 1.0;
+}
+ .tooltip .gameday {
+   clear: both;
+  font-size: 14px;
+  color: Ivory;
+  cursor: default;
+   opacity: 1.0;
+}
+.tooltip {
+        background-color: Crimson;
+        padding: .5em;
+     	font-family: Lato;
+      	font-size: 12px;
+  			color: #fff;
+      	font-weight: bolder;
+        border-radius: 6px;
+ 				border: 1px solid Ivory;
+        opacity: 1;
+        position: absolute;
+        text-align: center;
+        margin-top: 20px;
+      line-height: 1.3em;
+  box-shadow: 4px 4px 12px rgba(0,0,0,.5);
+    }
+    .ball2 {
+        pointer-events: none;
+
+
+      }
+      path {
+      	fill: none;
+      	stroke: Crimson;
+        stroke-width: 12px;
+        z-index: -1;
+        pointer-events: none;
+      }
+#init {
+  clear: both;
+  display: visible;
+  position: absolute;
+  padding: 5px;
+  z-index: 1;
+  margin-left: 8px;
+}
+#init2 {
+  position: absolute;
+  padding: 7px;
+  margin-left: 8px;
+}
+circle {
+background: linear-gradient(Ivory, BlanchedAlmond, #fff);
+}
+#cyan {
+  color: DarkCyan
+}
+#smaller {
+  margin-top: -8px;
+}
+</style>
+<body>
+  <div class="container">
+    <a href="http://samhooker.com" target="_blank"><img id="init" src="http://samhooker.com/images/initials/shinitindianred.png" width="35">
+    <img id="init2" src="http://samhooker.com/images/initials/shinitgainsboro.png" width="35"></a>
+    <h1>Countdown to 10,000</h1>
+    <h3>Pro ballhawk <a href="http://zackhample.com" target="_blank">Zack Hample</a> should snag his 10,000th major league ball this season. You can see almost every catch on <a href="https://www.youtube.com/user/zackhample" target="_blank">his YouTube channel</a> (he has his own personal cameraman).<h3>
+<h3>UPDATE: Zack caught <a href="https://twitter.com/zack_hample/status/902711942929940480" target="_blank">his 10,000th ball</a> on August 29, 2017 at Camden Yards.</h3>
+<h3>Total Balls: <i>10,163;</i> Total Games since 1993: <i>1,581</i></h3>
+<h5><i>UPDATED: </i>12/2/17; Game balls caught in <span id="cyan">Cyan</span></h5>
+    <div id="toolbar">
+      <a href="#" id="all" class="button active">All Games (1993-2017)</a>
+      <a href="#" id="year" class="button">By Year</a>
+      <a href="#" id="stadiumb" class="button">By Stadium</a>
+
+    </div>
+    <div id="vis"></div>
+</body>
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/2.24.0/d3-legend.min.js"></script>
+<script>
+function bubbleChart() {
+  var width = 1100;
+  var height = 960;
+
+  var tooltip = floatingTooltip('gates_tooltip', 120);
+
+  var center = { x: 550, y: 360 };
+
+var yearCenters = {
+    1993: { x: 220, y: 240 },
+    1994: { x: 330, y: 260 },
+    1995: { x: 440, y: 280 },
+    1996: { x: 530, y: 280 },
+    1997: { x: 620, y: 270 },
+    1998: { x: 710, y: 270 },
+    1999: { x: 800, y: 240 },
+    2000: { x: 230, y: 330 },
+    2001: { x: 330, y: 340 },
+    2002: { x: 420, y: 350 },
+    2003: { x: 510, y: 370 },
+    2004: { x: 600, y: 380 },
+    2005: { x: 690, y: 365 },
+    2006: { x: 775, y: 350 },
+    2007: { x: 250, y: 440 },
+     2008: { x: 350, y: 440 },
+    2009: { x: 450, y: 450 },
+    2010: { x: 550, y: 450 },
+    2011: { x: 650, y: 450 },
+    2012: { x: 750, y: 450 },
+    2013: { x: 260, y: 550 },
+    2014: { x: 370, y: 540 },
+    2015: { x: 490, y: 540 },
+    2016: { x: 600, y: 540 },
+    2017: { x: 710, y: 540 },
+  };
+
+var yearsTitle = {
+    1993: { x: 100, y: 40 },
+    1994: { x: 250, y: 30 },
+    1995: { x: 400, y: 30 },
+    1996: { x: 525, y: 30 },
+    1997: { x: 655, y: 30 },
+    1998: { x: 780, y: 30 },
+    1999: { x: 950, y: 35 },
+    2000: { x: 80, y: 185 },
+    2001: { x: 230, y: 170 },
+    2002: { x: 360, y: 180 },
+    2003: { x: 490, y: 180 },
+    2004: { x: 635, y: 160 },
+    2005: { x: 780, y: 170 },
+    2006: { x: 955, y: 200 },
+    2007: { x: 80, y: 320 },
+     2008: { x: 240, y: 285 },
+    2009: { x: 400, y: 305 },
+    2010: { x: 550, y: 320 },
+    2011: { x: 725, y: 300 },
+    2012: { x: 945, y: 340 },
+    2013: { x: 90, y: 510 },
+    2014: { x: 280, y: 525 },
+    2015: { x: 475, y: 530 },
+    2016: { x: 625, y: 555 },
+    2017: { x: 865, y: 565 }
+  };
+
+  var stadiumCenters = {
+1: { x: 285, y: 290 },
+    2: { x: 410, y: 300 },
+    3: { x: 540, y: 290 },
+    4: { x: 660, y: 280 },
+    5: { x: 770, y: 280 },
+    6: { x: 260, y: 390 },
+  7: { x: 360, y: 380 },
+  8: { x: 460, y: 380 },
+    9: { x: 560, y: 400 },
+    10: { x: 660, y: 400 },
+    11: { x: 760, y: 400 },
+    12: { x: 240, y: 480 },
+    13: { x: 330, y: 480 },
+    14: { x: 421, y: 480 },
+  15: { x: 510, y: 480 },
+  16: { x: 590, y: 500 },
+    17: { x: 670, y: 500 },
+    18: { x: 750, y: 520 },
+    19: { x: 835, y: 520 },
+    20: { x: 220, y: 550 },
+    21: { x: 310, y: 550 },
+    22: { x: 400, y: 550 },
+  23: { x: 490, y: 550 },
+  24: { x: 580, y: 550 },
+    25: { x: 650, y: 550 },
+    26: { x: 730, y: 570 },
+    27: { x: 820, y: 570 },
+    28: { x: 220, y: 630 },
+    29: { x: 300, y: 630 },
+    30: { x: 380, y: 630 },
+  31: { x: 460, y: 630 },
+  32: { x: 540, y: 630 },
+    33: { x: 620, y: 630 },
+    34: { x: 700, y: 630 },
+    35: { x: 770, y: 630 },
+    36: { x: 830, y: 630 },
+    37: { x: 220, y: 690 },
+    38: { x: 300, y: 690 },
+  39: { x: 370, y: 690 },
+  40: { x: 440, y: 690 },
+    41: { x: 520, y: 690 },
+    42: { x: 600, y: 690 },
+    43: { x: 670, y: 690 },
+    44: { x: 730, y: 690 },
+    45: { x: 800, y: 690 },
+    46: { x: 250, y: 760 },
+  47: { x: 330, y: 760 },
+  48: { x: 420, y: 760 },
+    49: { x: 510, y: 760 },
+    50: { x: 590, y: 760 },
+    51: { x: 680, y: 760 },
+    52: { x: 750, y: 760 }
+  };
+
+
+   var stadiumsTitle = {
+"Shea Stadium": { x: 170, y: 15 },
+    "Yankee Stadium (new)": { x: 405, y: 15 },
+    "Citi Field": { x: 620, y: 20 },
+    "Yankee Stadium (old)": { x: 805, y: 60 },
+    "Camden Yards": { x: 935, y: 85 },
+    "Citizens Bank Park": { x: 150, y: 415 },
+  "Nationals Park": { x: 302, y: 412},
+  "Coors Field": { x: 495, y: 427 },
+    "Turner Field": { x: 640, y: 410 },
+    "Fenway Park": { x: 790, y: 400 },
+    "Petco Park": { x: 920, y: 380 },
+    "Chase Field": { x: 120, y: 565 },
+    "Rangers Ballpark": { x: 280, y: 570 },
+    "Rogers Centre": { x: 421, y: 575 },
+ "Dodger Stadium": { x: 530, y: 565 },
+  "Great American Ballpark": { x: 650, y: 575 },
+    "Guaranteed Rate": { x: 775, y: 550 },
+   "Kauffman Stadium": { x: 895, y: 545 },
+   "Progressive Field": { x: 1010, y: 532 },
+   "Angel Stadium": { x: 100, y: 655 },
+   "Comerica Park": { x: 245, y: 675 },
+    "Wrigley Field": { x: 385, y: 670 },
+  "AT&T Park": { x: 510, y: 670 },
+  "Busch Stadium (new)": { x: 635, y: 680 },
+  "Miller Park": { x: 745, y: 650 },
+ "Oakland Coliseum": { x: 835, y: 675 },
+  "PNC Park": { x: 952, y: 651 },
+  "Safeco Field": { x: 110, y: 735 },
+  "Dolphin Stadium": { x: 242, y: 755 },
+    "Minute Maid Field": { x: 360, y: 760 },
+  "Marlins Park": { x: 468, y: 755 },
+ "Target Field": { x: 575, y: 755 },
+  "Tropicana Dome": { x: 690, y: 760 },
+ "Olympic Stadium": { x: 792, y: 748 },
+  "The Vet": { x: 880, y: 742 },
+"Champion Stadium": { x: 962, y: 725 },
+   "Hiram Bithorn": { x: 140, y: 832 },
+    "Qualcomm": { x: 248, y: 840 },
+  "SunTrust Park": { x: 342, y: 842 },
+"Tiger Stadium": { x: 445, y: 840 },
+    "Kingdome": { x: 550, y: 840 },
+  "Metrodome": { x: 650, y: 830 },
+  "Sydney Cricket": { x: 740, y: 825 },
+    "Tokyo Dome": { x: 820, y: 810 },
+    "Astrodome": { x: 902, y: 805 },
+   "Busch Stadium (old)": { x: 190, y: 895 },
+"Candlestick": { x: 290, y: 906 },
+ "Cinergy": { x: 409, y: 900 },
+    "County Stadium": { x: 525, y: 910 },
+   "Fort Bragg": { x: 620, y: 895 },
+   "RFK Stadium": { x: 735, y: 900 },
+   "Three Rivers": { x: 830, y: 880 }
+  };
+  var forceStrength = 0.03;
+
+  // These will be set in create_nodes and create_vis
+  var svg = null;
+  var bubbles = null;
+  var nodes = [];
+  var arc = null;
+
+
+  function charge(d) {
+    return -Math.pow(d.radius, 2.0) * forceStrength;
+  }
+
+  function chargea(d) {
+    return -Math.pow(d.radius, 1.0) * forceStrength;
+  }
+
+  var simulation = d3.forceSimulation()
+    .velocityDecay(0.1)
+    .force('x', d3.forceX().strength(forceStrength).x(center.x))
+    .force('y', d3.forceY().strength(forceStrength).y(center.y))
+    .force('charge', d3.forceManyBody().strength(charge))
+    .on('tick', ticked);
+
+  simulation.stop();
+
+
+
+
+
+  function createNodes(rawData) {
+    var maxAmount = d3.max(rawData, function (d) { return +d.Balls; });
+
+    var radiusScale = d3.scalePow()
+      .exponent(0.7)
+      .range([1, 25])
+      .domain([0, maxAmount]);
+    var myNodes = rawData.map(function (d) {
+      return {
+        id: d.Date,
+        name: d.Stadium,
+        radius: radiusScale(+d.Balls),
+        value: +d.Balls,
+        year: d.Year,
+        org: d.Home_Team,
+        gameball: d.Game_Balls,
+        hr: d.HR1,
+        hrplayer: d.HR2,
+        group: d.Cat,
+        open: d.Open,
+        close: d.Close,
+        score: d.RT,
+        ow: d.Op,
+        stadiumid: d.id3,
+        attendance: d.Attendance,
+        bp: d.BP,
+        pct: ((d.Op/d.BO)*100).toFixed(1),
+        x: Math.random() * 900,
+        y: Math.random() * 800,
+
+      };
+
+    });
+
+    myNodes.sort(function (a, b) { return b.value - a.value; });
+    return myNodes;
+  }
+
+
+  var chart = function chart(selector, rawData) {
+    nodes = createNodes(rawData);
+
+
+    svg = d3.select(selector)
+      .append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('class','centerme');
+
+
+    bubbles = svg.selectAll('.bubble')
+      .data(nodes, function (d) { return d.id; });
+
+
+
+    var bubblesE = bubbles.enter().append('circle')
+      .classed('bubble', true)
+      .attr('r', 0)
+      .attr('fill','Ivory')
+      .attr('stroke', function(d) {
+            if (d.gameball > 0) {return "Cyan"}
+            else 	{ return "IndianRed" }; })
+    /* .attr('fill', function (d) { return fillColor(d.group); })
+      .attr('stroke', function (d) { return d3.rgb(fillColor(d.group)).darker(); }) */
+      .attr('stroke-width', 1)
+      .on('mouseover', showDetail)
+      .on('mouseout', hideDetail);
+
+
+    bubbles = bubbles.merge(bubblesE);
+
+    bubbles.transition()
+      .duration(1200)
+  /*     .append("svg:image")
+      .attr("xlink:href", "http://www.iconninja.com/files/179/613/183/baseball-sport-ball-icon.png") */
+      .attr('r', function (d) { return d.radius});
+
+/*    .attr('d.radius',arc)
+    .attr('outerRadius', function (d) { return d.radius; })
+    .attr('startAngle', function (d) { (Math.random(360) * 100); })
+    .attr('endAngle', function (d) { (2 * Math.PI); }) */
+
+
+    simulation.nodes(nodes);
+
+    groupBubbles();
+  };
+
+
+  function ticked() {
+    bubbles
+      .attr('cx', function (d) { return d.x; })
+      .attr('cy', function (d) { return d.y; });
+  }
+
+
+  function nodeYearPosX(d) {
+    return yearCenters[d.year].x;
+  }
+  function nodeYearPosY(d) {
+    return yearCenters[d.year].y;
+  }
+function nodeStadiumPosX(d) {
+    return stadiumCenters[d.stadiumid].x;
+  }
+  function nodeStadiumPosY(d) {
+    return stadiumCenters[d.stadiumid].y;
+  }
+  function addBall() {
+    svg.append('svg:image')
+    .attr('class', 'ball2')
+.attr(
+  'xlink:href', 'http://samhooker.com/images/balls2.png')
+  .attr('x', 365)
+  .attr('y', 290)
+  .attr('width', '350px')
+  .attr('height','120px')
+    .style('opacity','0.0')
+      .transition()
+    .duration(4300)
+      .style('opacity','0.6')
+    svg.append('svg:image')
+        .attr('class', 'ball2')
+    .attr(
+      'xlink:href', 'http://samhooker.com/images/seam1.png')
+      .attr('x', 273)
+      .attr('y', 85)
+      .attr('width', '548px')
+      .attr('height','182px')
+        .style('opacity','0.0')
+          .transition()
+        .duration(4300)
+          .style('opacity','0.6')
+    svg.append('svg:image')
+        .attr('class', 'ball2')
+    .attr(
+      'xlink:href', 'http://samhooker.com/images/seam2.png')
+      .attr('x', 278)
+      .attr('y', 450)
+      .attr('width', '533px')
+      .attr('height','178px')
+        .style('opacity','0.0')
+          .transition()
+        .duration(4300)
+          .style('opacity','0.6')
+          svg.append('svg:image')
+             .attr('class', 'ball2')
+         .attr(
+           'xlink:href', 'http://samhooker.com/images/mlb1.png')
+           .attr('x', 390)
+           .attr('y', 575)
+           .attr('width', '298px')
+           .attr('height','71px')
+             .style('opacity','0.0')
+               .transition()
+             .duration(4300)
+               .style('opacity','0.6')
+          svg.append('svg:image')
+             .attr('class', 'ball2')
+         .attr(
+           'xlink:href', 'http://samhooker.com/images/rawlings1.png')
+           .attr('x', 435)
+           .attr('y', 45)
+           .attr('width', '250px')
+           .attr('height','60px')
+             .style('opacity','0.0')
+               .transition()
+             .duration(4300)
+               .style('opacity','0.6')
+
+  }
+ function hideSeams() {
+
+   svg.selectAll('.ball2').remove();
+  }
+  function groupBubbles() {
+
+    hideYearTitles();
+    hideStadiumTitles();
+
+
+
+
+
+    simulation.force('x', d3.forceX().strength(forceStrength).x(center.x))
+    .force('y', d3.forceY().strength(forceStrength).y(center.y));
+
+
+
+    simulation.alpha(1).restart();
+
+    addBall();
+  }
+
+
+
+
+    function splitBubblesa() {
+
+      hideStadiumTitles();
+      hideSeams();
+          showYearTitles();
+
+
+
+
+      simulation.velocityDecay(0.1).force('x', d3.forceX().strength(forceStrength).x(nodeYearPosX))
+      .force('y', d3.forceY().strength(forceStrength).y(nodeYearPosY))
+      .force('charge', d3.forceManyBody().strength(charge))
+      .on('tick', ticked);
+      simulation.alpha(1).restart();
+
+
+    }
+
+    function splitBubblesb() {
+
+      hideYearTitles();
+      hideSeams();
+      showStadiumTitles();
+
+
+      simulation.velocityDecay(0.1).force('x', d3.forceX().strength(forceStrength).x(nodeStadiumPosX))
+      .force('y', d3.forceY().strength(forceStrength).y(nodeStadiumPosY))
+      .force('charge', d3.forceManyBody().strength(charge))
+      .on('tick', ticked);
+
+
+      simulation.alpha(1).restart();
+
+
+    }
+
+
+  function hideYearTitles() {
+    svg.selectAll('.year').remove();
+  }
+
+
+  function showYearTitles() {
+    var yearsData = d3.keys(yearsTitle);
+    var years = svg.selectAll('.year')
+      .data(yearsData);
+
+    years.enter().append('text')
+      .attr('class', 'year')
+      .attr('x', function (d) { return yearsTitle[d].x; })
+      .attr('y', function (d) { return yearsTitle[d].y; })
+      .attr('text-anchor', 'middle')
+    	.style('font-family', 'Lato')
+ .style('font-size','1px')
+ .style('fill','Crimson')
+    .transition()
+          .duration(3000)
+    .style('font-size','12px')
+
+    .style('font-weight','bolder')
+      .text(function (d) { return d; });
+  }
+
+  function hideStadiumTitles() {
+    svg.selectAll('.stadium').remove();
+  }
+function showStadiumTitles() {
+    var stadiumsData = d3.keys(stadiumsTitle);
+    var stadiums = svg.selectAll('.stadium')
+      .data(stadiumsData);
+
+   stadiums.enter().append('text')
+      .attr('class', 'stadium')
+      .attr('x', function (d) { return stadiumsTitle[d].x; })
+      .attr('y', function (d) { return stadiumsTitle[d].y; })
+      .attr('text-anchor', 'middle')
+    	.style('font-family', 'Lato')
+  .style('font-size','1px')
+    	.style('fill','Crimson')
+      .transition()
+            .duration(3000)
+    .style('font-size','11px')
+    .style('font-weight','bolder')
+      .text(function (d) { return d; })
+  }
+  function showDetail(d) {
+    d3.select(this).attr('stroke-width',2);
+
+    var content = '<span class="title">' + d.value + ' balls at ' + d.name +
+                  '</span><br/>' + '<span class="gameday">' + d.id + ', ' + d.year +
+                  '</span><br/>' + '<span class="name">BP: </span><span class="value">' + d.bp+
+                  '</span>' + '<br/><span class="name">Attendance </span><span class="value">' + d.attendance +
+                  '</span><br/>' +
+                  '<span class="name">Home Team: </span><span class="value">' +
+                  d.org +
+                  '</span>'
+    +
+                  '</span><br/>' +
+                  '<span class="gb">Game Balls: ' +
+                  d.gameball +
+                  ', HR: ' + d.hr + ' ' + d.hrplayer + '</span>';
+
+    tooltip.showTooltip(content, d3.event);
+  }
+
+
+  function hideDetail(d) {
+
+    d3.select(this)
+      .attr('stroke-width',1);
+
+    tooltip.hideTooltip();
+  }
+
+
+  chart.toggleDisplay = function (displayName) {
+    if (displayName === 'year') {
+      splitBubblesa();
+    } else if (displayName === 'stadiumb') {
+    	splitBubblesb();
+      } else {
+      groupBubbles();
+    }
+  };
+
+
+  // return the chart function from closure.
+  return chart;
+}
+
+/*
+ * Below is the initialization code as well as some helper functions
+ * to create a new bubble chart instance, load the data, and display it.
+ */
+
+var myBubbleChart = bubbleChart();
+
+/*
+ * Function called once data is loaded from CSV.
+ * Calls bubble chart function to display inside #vis div.
+ */
+function display(error, data) {
+  if (error) {
+    console.log(error);
+  }
+
+
+  myBubbleChart('#vis', data);
+}
+
+
+/*
+ * Sets up the layout buttons to allow for toggling between view modes.
+ */
+function setupButtons() {
+  d3.select('#toolbar')
+    .selectAll('.button')
+    .on('click', function () {
+      d3.selectAll('.button').classed('active', false);
+      var button = d3.select(this);
+
+
+      button.classed('active', true);
+      var buttonId = button.attr('id');
+
+ 
+      myBubbleChart.toggleDisplay(buttonId);
+    });
+}
+
+
+function addCommas(nStr) {
+  nStr += '';
+  var x = nStr.split('.');
+  var x1 = x[0];
+  var x2 = x.length > 1 ? '.' + x[1] : '';
+  var rgx = /(\d+)(\d{3})/;
+  while (rgx.test(x1)) {
+    x1 = x1.replace(rgx, '$1' + ',' + '$2');
+  }
+
+  return x1 + x2;
+}
+
+d3.csv('http://samhooker.com/data/hample1201.csv', display);
+
+
+setupButtons();
+function floatingTooltip(tooltipId, width) {
+  // Local variable to hold tooltip div for
+  // manipulation in other functions.
+  var tt = d3.select('body')
+    .append('div')
+    .attr('class', 'tooltip')
+    .attr('id', tooltipId)
+    .style('pointer-events', 'none');
+
+  // Set a width if it is provided.
+  if (width) {
+    tt.style('width', width);
+  }
+
+  // Initially it is hidden.
+  hideTooltip();
+
+  /*
+   * Display tooltip with provided content.
+   *
+   * content is expected to be HTML string.
+   *
+   * event is d3.event for positioning.
+   */
+  function showTooltip(content, event) {
+    tt.style('opacity', 0.85)
+      .html(content);
+
+    updatePosition(event);
+  }
+
+  /*
+   * Hide the tooltip div.
+   */
+  function hideTooltip() {
+    tt.style('opacity', 0.0);
+  }
+
+  /*
+   * Figure out where to place the tooltip
+   * based on d3 mouse event.
+   */
+  function updatePosition(event) {
+    var xOffset = -5;
+    var yOffset = 5;
+
+    var ttw = tt.style('width');
+    var tth = tt.style('height');
+
+    var wscrY = window.scrollY;
+    var wscrX = window.scrollX;
+
+    var curX = (document.all) ? event.clientX + wscrX : event.pageX;
+    var curY = (document.all) ? event.clientY + wscrY : event.pageY;
+    var ttleft = ((curX - wscrX + xOffset * 2 + ttw) > window.innerWidth) ?
+                 curX - ttw - xOffset * 2 : curX + xOffset;
+
+    if (ttleft < wscrX + xOffset) {
+      ttleft = wscrX + xOffset;
+    }
+
+    var tttop = ((curY - wscrY + yOffset * 2 + tth) > window.innerHeight) ?
+                curY - tth - yOffset * 2 : curY + yOffset;
+
+    if (tttop < wscrY + yOffset) {
+      tttop = curY + yOffset;
+    }
+
+    tt
+      .style('top', tttop + 'px')
+      .style('left', ttleft + 'px');
+  }
+
+  return {
+    showTooltip: showTooltip,
+    hideTooltip: hideTooltip,
+    updatePosition: updatePosition
+  };
+}
+</script>
+<script>
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-100133416-1', 'auto');
+ga('send', 'pageview');
+
+</script>
+</html>
